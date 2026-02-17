@@ -8,12 +8,12 @@ export function isEmail(enteredEmail) {
 
 export function isMobile(enteredMobile) {
   //const regex = /^\+[\d\s-]{7,15}$/;
-  const regex = /^[\d]{12}$/;
+  const regex = /^[\d]{10}$/;
   return regex.test(enteredMobile);
 }
 
 export function isName(enteredName) {
-  const regex = /^[A-Za-z]+(?:[ '-][A-Za-z]*)*$/;
+  const regex = /^[A-Za-z]+(?:[\S'-][A-Za-z]*)*$/;
   return regex.test(enteredName);
 }
 

@@ -1,6 +1,7 @@
 import React from "react";
 import { useState, useRef } from "react";
 import { isEmail, isMobile, isName, isPincode } from "../utils/validation";
+import { NotebookPen } from "lucide-react";
 
 const SignUpPage = () => {
   //setting the seperate state for error message
@@ -57,6 +58,14 @@ const SignUpPage = () => {
   //Universal change handler
   function handleChange(e) {
     const { name, value } = e.target; // extracting the target element name and value
+
+    //extra layer for mobile
+    if (name === "mobile") {
+      const onlyDigits = value.replace(/\D/g, "");
+      setFormData({ ...formData, mobile: onlyDigits });
+      return;
+    }
+
     setFormData((prev) => ({
       ...prev,
       [name]: value,
@@ -88,20 +97,70 @@ const SignUpPage = () => {
   function handleMobileValidation() {
     console.log("handle mobile validation");
 
-    if (isMobile(enteredMobile.current.value)) {
-      console.log(mobileStatus.message, enteredMobile.current.value);
-      setMobileStatus({ message: "Mobile Number is valid ", color: "green" });
-      enteredMobile.current.style.borderColor = mobileStatus.color;
-    } else {
+    const value = enteredMobile.current.value.trim();
+    // mandatory check
+    if (!value) {
+      setMobileStatus({
+        message: "Mobile Number is mandatory",
+        color: "red",
+      });
+      enteredMobile.current.style.borderColor = "red";
+      return;
+    }
+
+    //format check
+
+    if (!isMobile(value)) {
       console.log(mobileStatus.message, enteredMobile.current.value);
       setMobileStatus({ message: "Mobile Number is invalid ", color: "red" });
-      enteredMobile.current.style.borderColor = mobileStatus.color;
+      enteredMobile.current.style.borderColor = "red";
+      return;
     }
+
+    //valid case
+
+    console.log(mobileStatus.message, enteredMobile.current.value);
+    setMobileStatus({ message: "", color: "green" });
+    enteredMobile.current.style.borderColor = "green";
   }
+
+  //handling first name validation - step by step
 
   function handleFirstNameValidation() {
     console.log("handle first Name Validation");
-    const value = enteredFirstName.current.value;
+
+    //step 1 = getting the trimmed value
+    const value = enteredFirstName.current.value.trim().replace(/\s+/g, " ");
+    //enteredFirstName.current.value = value;
+
+    //updating the form data for putting the new value to the input field
+
+    //step2 :update cleaned value back to input
+    setFormData((prev) => ({
+      ...prev,
+      firstName: value,
+    }));
+
+    //checking empty first
+    if (!value) {
+      setFirstNameStatus({
+        message: "First Name is Mandatory",
+        color: "red",
+      });
+      return;
+    }
+
+    //then checking validity
+    if (!isName(value)) {
+      setFirstNameStatus({
+        message: "please enter valid name ",
+        color: "red",
+      });
+      enteredFirstName.current.style.borderColor = "red";
+      return;
+    }
+
+    /*
     if (isName(value)) {
       setFirstNameStatus({
         message: "",
@@ -116,12 +175,38 @@ const SignUpPage = () => {
       enteredFirstName.current.style.borderColor = "red";
     }
     //enteredFirstName.current.style.borderColor = firstNameStatus.color;
+    */
+
+    //if every thing is fine
+    setFirstNameStatus({
+      message: "",
+      color: "green",
+    });
+    enteredFirstName.current.style.borderColor = "green";
+    console.log(value);
   }
 
   function handleLastNameValidation() {
     console.log("handle Last Name Validation");
 
-    const value = enteredLastName.current.value;
+    const value = enteredLastName.current.value.trim().replace(/\s+/g, " ");
+
+    // setting up the lastName to put it into input field
+    setFormData((prev) => ({
+      ...prev,
+      lastName: value,
+    }));
+
+    // checking empty first
+
+    if (!value) {
+      setLastNameStatus({
+        message: "Last Name is mandatory",
+        color: "red",
+      });
+      return;
+    }
+
     if (isName(value)) {
       setLastNameStatus({
         message: "",
@@ -135,6 +220,7 @@ const SignUpPage = () => {
       });
       enteredLastName.current.style.borderColor = "red";
     }
+    console.log(value);
   }
 
   function handleMiddleNameValidation() {
@@ -143,7 +229,13 @@ const SignUpPage = () => {
 
   function handlePincodeValidation() {
     console.log("handle Pincode validation");
-    const value = enteredPincode.current.value;
+    const value = enteredPincode.current.value.trim();
+
+    setFormData((prev) => ({
+      ...prev,
+      pincode: value,
+    }));
+
     if (isPincode(value)) {
       setPincodeStatus({
         message: "",
@@ -157,6 +249,7 @@ const SignUpPage = () => {
       });
       enteredPincode.current.style.borderColor = "red";
     }
+    console.log(value);
   }
 
   // in the handle submit function - unique id and combining the name - fullname = firstname + middlename + lastname
@@ -206,11 +299,7 @@ const SignUpPage = () => {
         <h2>Fill the details to singup</h2>
         <form onSubmit={handleSubmit}>
           <label htmlFor="firstName">First Name</label>
-          {firstNameStatus.message && (
-            <p style={{ color: firstNameStatus.color }}>
-              {firstNameStatus.message}
-            </p>
-          )}
+
           <input
             id="firstName"
             type="text"
@@ -221,6 +310,11 @@ const SignUpPage = () => {
             value={formData.firstName}
             required
           />
+          {firstNameStatus.message && (
+            <p style={{ color: firstNameStatus.color, marginTop: 0 }}>
+              {firstNameStatus.message}
+            </p>
+          )}
 
           <label htmlFor="middleName">Middle Name </label>
           <input
@@ -234,11 +328,7 @@ const SignUpPage = () => {
           />
 
           <label htmlFor="lastName">Last Name</label>
-          {lastNameStatus.message && (
-            <p style={{ color: lastNameStatus.color }}>
-              {lastNameStatus.message}
-            </p>
-          )}
+
           <input
             id="lastName"
             type="text"
@@ -249,6 +339,11 @@ const SignUpPage = () => {
             onBlur={handleLastNameValidation}
             required
           />
+          {lastNameStatus.message && (
+            <p style={{ color: lastNameStatus.color, marginTop: 0 }}>
+              {lastNameStatus.message}
+            </p>
+          )}
 
           <label htmlFor="email">Email</label>
           <input
@@ -262,7 +357,9 @@ const SignUpPage = () => {
             required
           />
           {emailStatus.message && (
-            <p style={{ color: emailStatus.color }}>{emailStatus.message}</p>
+            <p style={{ color: emailStatus.color, marginTop: 0 }}>
+              {emailStatus.message}
+            </p>
           )}
           <label htmlFor="mobile">Mobile Number</label>
           <input
@@ -273,9 +370,16 @@ const SignUpPage = () => {
             onChange={handleChange}
             value={formData.mobile}
             onBlur={handleMobileValidation}
-            maxLength={12}
+            maxLength={10}
+            pattern="[6-9]{1}[0-9]*"
+            inputMode="numeric"
             required
           />
+          {mobileStatus.message && (
+            <p style={{ color: mobileStatus.color, marginTop: 0 }}>
+              {mobileStatus.message}
+            </p>
+          )}
 
           <label htmlFor="addressLine1">Address Line 1</label>
           <textarea
@@ -308,11 +412,7 @@ const SignUpPage = () => {
           />
 
           <label htmlFor="pincode">Pincode</label>
-          {pincodeStatus.message && (
-            <p style={{ color: pincodeStatus.color }}>
-              {pincodeStatus.message}
-            </p>
-          )}
+
           <input
             id="pincode"
             type="text"
@@ -324,6 +424,11 @@ const SignUpPage = () => {
             maxLength={6}
             required
           />
+          {pincodeStatus.message && (
+            <p style={{ color: pincodeStatus.color, marginTop: 0 }}>
+              {pincodeStatus.message}
+            </p>
+          )}
 
           <label htmlFor="photo">Photo</label>
           {/* <input
@@ -335,20 +440,78 @@ const SignUpPage = () => {
           /> */}
           <input
             type="file"
+            accept="image/png, image/jpeg, image/jpg"
             onChange={(e) => {
               const file = e.target.files[0];
               if (!file) return;
 
-              const preview = URL.createObjectURL(file);
+              // Correct allowed types
+              const allowedTypes = ["image/png", "image/jpeg", "image/jpg"];
+              if (!allowedTypes.includes(file.type)) {
+                alert("Only PNG , JPG and JPEG files can be uploaded");
+                e.target.value = "";
+                return;
+              }
+
+              /* // //validate file type
+                if (!file.type.startsWith("image/")) {
+                  alert("Only image files are allowed!");
+                  e.target.value = ""; //clear the input
+                  return;
+                }*/
+
+              //validation of file extensions
+
+              const allowedExtensions = ["png", "jpeg", "jpg"];
+              const fileExtension = file.name.split(".").pop().toLowerCase();
+              if (!allowedExtensions.includes(fileExtension)) {
+                alert("Invalid file extension. Only PNG, JPEG, JPG allowed.");
+                e.target.value = "";
+                return;
+              }
+
+              // 5MB size limit
+              const maxSize = 5 * 1024 * 1024;
+              if (file.size > maxSize) {
+                alert("File size must be less than 5MB");
+                e.target.value = "";
+                return;
+              }
+
+              // const reader = new FileReader();
+              // reader.onloadend = () => {
+              //   setFormData((prev) => ({
+              //     ...prev,
+              //     photo: reader.result,
+              //   }));
+              // };
+              // reader.readAsDataURL(file);
+
+              const imageUrl = URL.createObjectURL(file);
               setFormData((prev) => ({
                 ...prev,
-                photo: preview,
+                photo: imageUrl,
+                preview: imageUrl,
               }));
             }}
             required
             name="photo"
             id="photo"
           />
+          {formData.photo && (
+            <div style={{ marginTop: "1rem" }}>
+              <img
+                src={formData.photo}
+                alt="Preview"
+                style={{
+                  width: "100px",
+                  height: "100px",
+                  objectFit: "cover",
+                  borderRadius: "5%",
+                }}
+              />
+            </div>
+          )}
           <button type="submit">Create Account</button>
         </form>
       </div>

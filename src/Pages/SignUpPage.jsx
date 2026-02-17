@@ -1,9 +1,13 @@
-import React from "react";
-import { useState, useRef } from "react";
+import React, { useState, useRef } from "react";
 import { isEmail, isMobile, isName, isPincode } from "../utils/validation";
-import { NotebookPen } from "lucide-react";
+import { User, Mail, MapPin, Upload } from "lucide-react";
+import "./SignUpPage.css";
+import { useNavigate } from "react-router-dom";
 
 const SignUpPage = () => {
+  const navigate = useNavigate();
+
+  // ... (keeping existing state logic same)
   //setting the seperate state for error message
   const [emailStatus, setEmailStatus] = useState({ message: "", color: "" });
 
@@ -29,16 +33,25 @@ const SignUpPage = () => {
     color: "",
   });
 
-  // using useRef() to get the particular field
-  // useRef returns a mutable ref object whose .current property is initialized to the passed argument (initialValue). The returned object will persist for the full lifetime of the component.
+  const [address1Status, setAddress1Status] = useState({
+    message: "",
+    color: "",
+  });
 
-  //Note that useRef() is useful for more than the ref attribute. It’s handy for keeping any mutable value around similar to how you’d use instance fields in classes.
+  const [address3Status, setAddress3Status] = useState({
+    message: "",
+    color: "",
+  });
+
+  // using useRef() to get the particular field
   const enteredEmail = useRef();
   const enteredMobile = useRef();
   const enteredFirstName = useRef();
   const enteredMiddleName = useRef();
   const enteredLastName = useRef();
   const enteredPincode = useRef();
+  const enteredAddress1 = useRef();
+  const enteredAddress3 = useRef();
 
   // Initialize state with keys matching the "name" attributes of input
 
@@ -53,6 +66,7 @@ const SignUpPage = () => {
     address3: "",
     pincode: "",
     photo: "",
+    preview: "", // Added preview to state for consistency
   });
 
   //Universal change handler
@@ -62,7 +76,24 @@ const SignUpPage = () => {
     //extra layer for mobile
     if (name === "mobile") {
       const onlyDigits = value.replace(/\D/g, "");
-      setFormData({ ...formData, mobile: onlyDigits });
+
+      // Ensure the number starts with 6, 7, 8, or 9
+      if (onlyDigits.length > 0 && !/^[6-9]/.test(onlyDigits)) {
+        return;
+      }
+
+      setFormData((prev) => ({ ...prev, mobile: onlyDigits }));
+      return;
+    }
+
+    //extra layer for name
+
+    if (["firstName", "middleName", "lastName"].includes(name)) {
+      const onlyLetters = value.replace(/[^a-zA-Z\s]/g, "");
+      setFormData((prev) => ({
+        ...prev,
+        [name]: onlyLetters,
+      }));
       return;
     }
 
@@ -77,6 +108,15 @@ const SignUpPage = () => {
   function handleEmailValidation() {
     // getting the value
     //const enteredEmail = useRef(null);
+
+    if (!enteredEmail.current.value) {
+      setEmailStatus({
+        message: "Email is mandatory",
+        color: "red",
+      });
+      return;
+    }
+
     if (isEmail(enteredEmail.current.value)) {
       console.log("email is valid", enteredEmail.current.value);
       setEmailStatus({
@@ -100,10 +140,7 @@ const SignUpPage = () => {
     const value = enteredMobile.current.value.trim();
     // mandatory check
     if (!value) {
-      setMobileStatus({
-        message: "Mobile Number is mandatory",
-        color: "red",
-      });
+      setMobileStatus({ message: "Mobile Number is mandatory", color: "red" });
       enteredMobile.current.style.borderColor = "red";
       return;
     }
@@ -206,12 +243,8 @@ const SignUpPage = () => {
       });
       return;
     }
-
     if (isName(value)) {
-      setLastNameStatus({
-        message: "",
-        color: "green",
-      });
+      setLastNameStatus({ message: "", color: "green" });
       enteredLastName.current.style.borderColor = "green";
     } else {
       setLastNameStatus({
@@ -225,6 +258,43 @@ const SignUpPage = () => {
 
   function handleMiddleNameValidation() {
     console.log("Handle Middle Name Validation");
+    enteredMiddleName.current.placeholder = "";
+  }
+
+  function handleAddress1Validation() {
+    const value = enteredAddress1.current.value.trim();
+    //const value = formData.address1.trim();
+    let borderCLR = "";
+    if (!value) {
+      setAddress1Status({
+        message: "Address Line 1 is mandatory",
+        color: "red",
+      });
+      borderCLR = "red";
+    } else {
+      setAddress1Status({ message: "", color: "green" });
+      borderCLR = "green";
+    }
+    enteredAddress1.current.style.borderColor = borderCLR;
+  }
+
+  function handleAddress3Validation() {
+    const value = enteredAddress3.current.value.trim();
+    //const value = formData.address3.trim();
+    let borderCLR = "";
+    if (!value) {
+      setAddress3Status({
+        message: "Address Line 3 is mandatory",
+        color: "red",
+      });
+      // enteredAddress3.current.style.borderColor = "red";
+      borderCLR = "red";
+    } else {
+      setAddress3Status({ message: "", color: "green" });
+      //enteredAddress3.current.style.borderColor = "green";
+      borderCLR = "green";
+    }
+    enteredAddress3.current.style.borderColor = borderCLR;
   }
 
   function handlePincodeValidation() {
@@ -236,6 +306,15 @@ const SignUpPage = () => {
       pincode: value,
     }));
 
+    if (!value) {
+      setPincodeStatus({
+        message: "Pincode is mandatory",
+        color: "red",
+      });
+      enteredPincode.current.style.borderColor = "red";
+      return;
+    }
+
     if (isPincode(value)) {
       setPincodeStatus({
         message: "",
@@ -244,7 +323,7 @@ const SignUpPage = () => {
       enteredPincode.current.style.borderColor = "green";
     } else {
       setPincodeStatus({
-        message: "please enter valid pincode",
+        message: "Please enter valid pincode",
         color: "red",
       });
       enteredPincode.current.style.borderColor = "red";
@@ -289,230 +368,303 @@ const SignUpPage = () => {
 
     alert("User is added successfully!!");
     console.log("the users data :", newUser);
+    // reseting the form
+    setFormData({
+      firstName: "",
+      middleName: "",
+      lastName: "",
+      email: "",
+      mobile: "",
+      address1: "",
+      address2: "",
+      address3: "",
+      pincode: "",
+      photo: "",
+      preview: "",
+    });
+    navigate("/users");
   }
 
   return (
-    <div className="SignUpPage">
-      <h1>SignUp Page</h1>
+    <div className="signup-container">
+      <div className="signup-form-wrapper">
+        <h1 className="signup-title">Create Account</h1>
+        <p className="signup-subtitle">Please fill in your details below</p>
 
-      <div className="form">
-        <h2>Fill the details to singup</h2>
-        <form onSubmit={handleSubmit}>
-          <label htmlFor="firstName">First Name</label>
+        <form onSubmit={handleSubmit} autoComplete="off">
+          {/* Section 1: Personal Details */}
+          <div className="form-section">
+            <h3 className="section-title">
+              <User size={20} /> Personal Details
+            </h3>
+            <div className="form-grid">
+              <div className="form-group">
+                <label htmlFor="firstName">First Name *</label>
+                <input
+                  id="firstName"
+                  type="text"
+                  name="firstName"
+                  ref={enteredFirstName}
+                  onChange={handleChange}
+                  onBlur={handleFirstNameValidation}
+                  value={formData.firstName}
+                  required
+                  placeholder="John"
+                />
+                {firstNameStatus.message && (
+                  <span
+                    className="error-msg"
+                    style={{ color: firstNameStatus.color }}
+                  >
+                    {firstNameStatus.message}
+                  </span>
+                )}
+              </div>
 
-          <input
-            id="firstName"
-            type="text"
-            name="firstName"
-            ref={enteredFirstName}
-            onChange={handleChange}
-            onBlur={handleFirstNameValidation}
-            value={formData.firstName}
-            required
-          />
-          {firstNameStatus.message && (
-            <p style={{ color: firstNameStatus.color, marginTop: 0 }}>
-              {firstNameStatus.message}
-            </p>
-          )}
+              <div className="form-group">
+                <label htmlFor="middleName">Middle Name</label>
+                <input
+                  id="middleName"
+                  type="text"
+                  name="middleName"
+                  ref={enteredMiddleName}
+                  onChange={handleChange}
+                  onBlur={handleMiddleNameValidation}
+                  value={formData.middleName}
+                  placeholder="Quincy"
+                />
+              </div>
 
-          <label htmlFor="middleName">Middle Name </label>
-          <input
-            id="middleName"
-            type="text"
-            name="middleName"
-            ref={enteredMiddleName}
-            onChange={handleChange}
-            onBlur={handleMiddleNameValidation}
-            value={formData.middleName}
-          />
-
-          <label htmlFor="lastName">Last Name</label>
-
-          <input
-            id="lastName"
-            type="text"
-            name="lastName"
-            ref={enteredLastName}
-            onChange={handleChange}
-            value={formData.lastName}
-            onBlur={handleLastNameValidation}
-            required
-          />
-          {lastNameStatus.message && (
-            <p style={{ color: lastNameStatus.color, marginTop: 0 }}>
-              {lastNameStatus.message}
-            </p>
-          )}
-
-          <label htmlFor="email">Email</label>
-          <input
-            id="email"
-            type="email"
-            name="email"
-            ref={enteredEmail}
-            onChange={handleChange}
-            value={formData.email}
-            onBlur={handleEmailValidation}
-            required
-          />
-          {emailStatus.message && (
-            <p style={{ color: emailStatus.color, marginTop: 0 }}>
-              {emailStatus.message}
-            </p>
-          )}
-          <label htmlFor="mobile">Mobile Number</label>
-          <input
-            id="mobile"
-            type="tel"
-            name="mobile"
-            ref={enteredMobile}
-            onChange={handleChange}
-            value={formData.mobile}
-            onBlur={handleMobileValidation}
-            maxLength={10}
-            pattern="[6-9]{1}[0-9]*"
-            inputMode="numeric"
-            required
-          />
-          {mobileStatus.message && (
-            <p style={{ color: mobileStatus.color, marginTop: 0 }}>
-              {mobileStatus.message}
-            </p>
-          )}
-
-          <label htmlFor="addressLine1">Address Line 1</label>
-          <textarea
-            id="address1"
-            type="textarea"
-            name="address1"
-            onChange={handleChange}
-            value={formData.address1}
-            required
-          />
-
-          <label htmlFor="addressLine2">Address Line 2</label>
-          <textarea
-            id="address2"
-            type="textarea"
-            name="address2"
-            onChange={handleChange}
-            value={formData.address2}
-            required
-          />
-
-          <label htmlFor="addressLine3">Address Line 3</label>
-          <textarea
-            id="address3"
-            type="textarea"
-            name="address3"
-            onChange={handleChange}
-            value={formData.address3}
-            required
-          />
-
-          <label htmlFor="pincode">Pincode</label>
-
-          <input
-            id="pincode"
-            type="text"
-            name="pincode"
-            onChange={handleChange}
-            value={formData.pincode}
-            onBlur={handlePincodeValidation}
-            ref={enteredPincode}
-            maxLength={6}
-            required
-          />
-          {pincodeStatus.message && (
-            <p style={{ color: pincodeStatus.color, marginTop: 0 }}>
-              {pincodeStatus.message}
-            </p>
-          )}
-
-          <label htmlFor="photo">Photo</label>
-          {/* <input
-            id="photo"
-            type="file"
-            name="photo"
-            onChange={handleChange}
-            required
-          /> */}
-          <input
-            type="file"
-            accept="image/png, image/jpeg, image/jpg"
-            onChange={(e) => {
-              const file = e.target.files[0];
-              if (!file) return;
-
-              // Correct allowed types
-              const allowedTypes = ["image/png", "image/jpeg", "image/jpg"];
-              if (!allowedTypes.includes(file.type)) {
-                alert("Only PNG , JPG and JPEG files can be uploaded");
-                e.target.value = "";
-                return;
-              }
-
-              /* // //validate file type
-                if (!file.type.startsWith("image/")) {
-                  alert("Only image files are allowed!");
-                  e.target.value = ""; //clear the input
-                  return;
-                }*/
-
-              //validation of file extensions
-
-              const allowedExtensions = ["png", "jpeg", "jpg"];
-              const fileExtension = file.name.split(".").pop().toLowerCase();
-              if (!allowedExtensions.includes(fileExtension)) {
-                alert("Invalid file extension. Only PNG, JPEG, JPG allowed.");
-                e.target.value = "";
-                return;
-              }
-
-              // 5MB size limit
-              const maxSize = 5 * 1024 * 1024;
-              if (file.size > maxSize) {
-                alert("File size must be less than 5MB");
-                e.target.value = "";
-                return;
-              }
-
-              // const reader = new FileReader();
-              // reader.onloadend = () => {
-              //   setFormData((prev) => ({
-              //     ...prev,
-              //     photo: reader.result,
-              //   }));
-              // };
-              // reader.readAsDataURL(file);
-
-              const imageUrl = URL.createObjectURL(file);
-              setFormData((prev) => ({
-                ...prev,
-                photo: imageUrl,
-                preview: imageUrl,
-              }));
-            }}
-            required
-            name="photo"
-            id="photo"
-          />
-          {formData.photo && (
-            <div style={{ marginTop: "1rem" }}>
-              <img
-                src={formData.photo}
-                alt="Preview"
-                style={{
-                  width: "100px",
-                  height: "100px",
-                  objectFit: "cover",
-                  borderRadius: "5%",
-                }}
-              />
+              <div className="form-group">
+                <label htmlFor="lastName">Last Name *</label>
+                <input
+                  id="lastName"
+                  type="text"
+                  name="lastName"
+                  ref={enteredLastName}
+                  onChange={handleChange}
+                  onBlur={handleLastNameValidation}
+                  value={formData.lastName}
+                  required
+                  placeholder="Doe"
+                />
+                {lastNameStatus.message && (
+                  <span
+                    className="error-msg"
+                    style={{ color: lastNameStatus.color }}
+                  >
+                    {lastNameStatus.message}
+                  </span>
+                )}
+              </div>
             </div>
-          )}
-          <button type="submit">Create Account</button>
+
+            {/* Photo Upload in Personal Details */}
+            <div
+              className="form-group photo-upload-section"
+              style={{ marginTop: "20px" }}
+            >
+              <label
+                htmlFor="photo"
+                style={{
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                }}
+              >
+                <Upload size={18} /> Upload Profile Photo *
+              </label>
+              <input
+                type="file"
+                id="photo"
+                name="photo"
+                accept="image/png, image/jpeg, image/jpg"
+                onChange={(e) => {
+                  const file = e.target.files[0];
+                  if (!file) return;
+
+                  const allowedTypes = ["image/png", "image/jpeg", "image/jpg"];
+                  if (!allowedTypes.includes(file.type)) {
+                    alert("Only PNG, JPG and JPEG files can be uploaded");
+                    e.target.value = "";
+                    return;
+                  }
+
+                  const maxSize = 5 * 1024 * 1024; // 5MB
+                  if (file.size > maxSize) {
+                    alert("File size must be less than 5MB");
+                    e.target.value = "";
+                    return;
+                  }
+
+                  const imageUrl = URL.createObjectURL(file);
+                  setFormData((prev) => ({
+                    ...prev,
+                    photo: imageUrl,
+                    preview: imageUrl,
+                  }));
+                }}
+                required
+                // style={{ display: 'none' }} // Optional: hide standard input if styling label as button
+              />
+              {formData.preview && (
+                <img
+                  src={formData.preview}
+                  alt="Preview"
+                  className="image-preview"
+                />
+              )}
+            </div>
+          </div>
+
+          {/* Section 2: Contact Information */}
+          <div className="form-section">
+            <h3 className="section-title">
+              <Mail size={20} /> Contact Information
+            </h3>
+            <div className="form-grid">
+              <div className="form-group">
+                <label htmlFor="email">Email Address *</label>
+                <input
+                  id="email"
+                  type="email"
+                  name="email"
+                  ref={enteredEmail}
+                  onChange={handleChange}
+                  onBlur={handleEmailValidation}
+                  value={formData.email}
+                  required
+                  placeholder="john.doe@example.com"
+                />
+                {emailStatus.message && (
+                  <span
+                    className="error-msg"
+                    style={{ color: emailStatus.color }}
+                  >
+                    {emailStatus.message}
+                  </span>
+                )}
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="mobile">Mobile Number *</label>
+                <input
+                  id="mobile"
+                  type="tel"
+                  name="mobile"
+                  ref={enteredMobile}
+                  onChange={handleChange}
+                  onBlur={handleMobileValidation}
+                  value={formData.mobile}
+                  maxLength={10}
+                  pattern="[6-9]{1}[0-9]*"
+                  inputMode="numeric"
+                  required
+                  placeholder="9876543210"
+                />
+                {mobileStatus.message && (
+                  <span
+                    className="error-msg"
+                    style={{ color: mobileStatus.color }}
+                  >
+                    {mobileStatus.message}
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Section 3: Address Details */}
+          <div className="form-section">
+            <h3 className="section-title">
+              <MapPin size={20} /> Address Details
+            </h3>
+            <div className="form-grid">
+              <div className="form-group full-width">
+                <label htmlFor="address1">Address Line 1 *</label>
+                <textarea
+                  id="address1"
+                  name="address1"
+                  onChange={handleChange}
+                  value={formData.address1}
+                  required
+                  placeholder="Street address, P.O. box, etc."
+                  onBlur={handleAddress1Validation}
+                  ref={enteredAddress1}
+                />
+                {address1Status.message && (
+                  <span
+                    className="error-msg"
+                    style={{ color: address1Status.color }}
+                  >
+                    {address1Status.message}
+                  </span>
+                )}
+              </div>
+
+              <div className="form-group full-width">
+                <label htmlFor="address2">Address Line 2</label>
+                <textarea
+                  id="address2"
+                  name="address2"
+                  onChange={handleChange}
+                  value={formData.address2}
+                  placeholder="Apartment, suite, unit, building, floor, etc."
+                />
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="address3">Address Line 3 *</label>
+                <textarea
+                  id="address3"
+                  name="address3"
+                  onChange={handleChange}
+                  value={formData.address3}
+                  required
+                  placeholder="Street address, Landmark, etc."
+                  onBlur={handleAddress3Validation}
+                  ref={enteredAddress3}
+                />
+                {address3Status.message && (
+                  <span
+                    className="error-msg"
+                    style={{ color: address3Status.color }}
+                  >
+                    {address3Status.message}
+                  </span>
+                )}
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="pincode">Pincode *</label>
+                <input
+                  id="pincode"
+                  type="text"
+                  name="pincode"
+                  onChange={handleChange}
+                  onBlur={handlePincodeValidation}
+                  value={formData.pincode}
+                  ref={enteredPincode}
+                  maxLength={6}
+                  required
+                  placeholder="123456"
+                />
+                {pincodeStatus.message && (
+                  <span
+                    className="error-msg"
+                    style={{ color: pincodeStatus.color }}
+                  >
+                    {pincodeStatus.message}
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <button type="submit" className="submit-btn">
+            Create Account
+          </button>
         </form>
       </div>
     </div>

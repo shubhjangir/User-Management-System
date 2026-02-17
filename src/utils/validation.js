@@ -8,7 +8,7 @@ export function isEmail(enteredEmail) {
 
 export function isMobile(enteredMobile) {
   //const regex = /^\+[\d\s-]{7,15}$/;
-  const regex = /^[\d]{10}$/;
+  const regex = /^[6-9][0-9]{9}$/;
   return regex.test(enteredMobile);
 }
 

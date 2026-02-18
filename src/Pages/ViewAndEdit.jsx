@@ -1,322 +1,101 @@
-// import React from "react";
-// import { useNavigate } from "react-router-dom";
-// import { useParams, useSearchParams } from "react-router-dom";
-// import { useState, useEffect } from "react";
-// import Users from "../../users.json";
-
-// const ViewAndEdit = () => {
-//   const navigate = useNavigate();
-//   // reading data from url
-//   const { id } = useParams(); //user id
-//   const [searchParams] = useSearchParams(); //view and edit mode
-//   const isEdit = searchParams.get("isedit") === "true"; //form control
-
-//   //const users = JSON.parse(localStorage.getItem("users")) || Users;
-
-//   //Load User from JSON
-//   const user = users.find((u) => u.id === Number(id));
-//   //safety check
-//   if (!user) {
-//     return <h1>User Not Found</h1>;
-//   }
-
-//   //1) STATE FIRST
-//   // creating form state (main thing)
-
-//   const [formData, setFormData] = useState(null);
-
-//   //2) DATA INITIALIZATION EFFECT
-//   useEffect(() => {
-//     if (user) {
-//       setFormData({
-//         firstName: user.name.split(" ")[0],
-//         middleName: user.name.split(" ")[1] || "",
-//         lastName: user.name.split(" ")[2] || "",
-//         email: user.email,
-//         mobile: user.mobile,
-//         address1: user.address1,
-//         address2: user.address2,
-//         address3: user.address3,
-//         pincode: user.pincode,
-//         photo: user.photo,
-//       });
-//     }
-//   }, [user]);
-
-//   //3) CLEANUP STATE
-//   // handling the image handler
-//   useEffect(() => {
-//     return () => {
-//       if (formData?.photo?.startsWith("blob:")) {
-//         URL.revokeObjectURL(formData.photo);
-//       }
-//     };
-//   }, [formData?.photo]);
-
-//   //4) LOADING GAURD
-//   // just to be in safe side
-
-//   if (!formData) {
-//     return <h1>Loading user Data...</h1>;
-//   }
-
-//   // handling change
-//   function handleChange(e) {
-//     const { name, value } = e.target;
-//     setFormData((prev) => ({
-//       ...prev,
-//       [name]: value,
-//     }));
-//   }
-
-//   // updating the changement in local strogae
-//   function handleSubmit(e) {
-//     e.preventDefault();
-
-//     const updatedUsers = users.map((u) =>
-//       u.id === Number(id)
-//         ? {
-//             ...u,
-//             name: `${formData.firstName} ${formData.middleName} ${formData.lastName}`
-//               .replace(/\s+/g, " ")
-//               .trim(),
-//             email: formData.email,
-//             mobile: formData.mobile,
-//             address1: formData.address1,
-//             address2: formData.address2,
-//             address3: formData.address3,
-//             pincode: formData.pincode,
-//             photo: formData.photo,
-//           }
-//         : u,
-//     );
-
-//     localStorage.setItem("users", JSON.stringify(updatedUsers));
-
-//     alert("User updated successfully!");
-//     navigate("/users");
-//   }
-
-//   return (
-//     <div className="SignUpPage">
-//       <h1>{isEdit ? "Edit User " : "View User"}</h1>
-//       <div className="form">
-//         <h2>You can View and Edit the Details.</h2>
-//         <form onSubmit={handleSubmit}>
-//           <label htmlFor="firstName">First Name</label>
-//           <input
-//             id="firstName"
-//             type="text"
-//             name="firstName"
-//             value={formData.firstName}
-//             onChange={handleChange}
-//             required={isEdit}
-//             disabled={!isEdit}
-//           />
-
-//           <label htmlFor="middleName">Middle Name </label>
-//           <input
-//             id="middleName"
-//             type="text"
-//             name="middleName"
-//             value={formData.middleName}
-//             onChange={handleChange}
-//             disabled={!isEdit}
-//           />
-
-//           <label htmlFor="lastName">Last Name</label>
-//           <input
-//             id="lastName"
-//             type="text"
-//             name="lastName"
-//             value={formData.lastName}
-//             onChange={handleChange}
-//             required={isEdit}
-//             disabled={!isEdit}
-//           />
-
-//           <label htmlFor="email">Email</label>
-//           <input
-//             id="email"
-//             type="email"
-//             name="email"
-//             value={formData.email}
-//             onChange={handleChange}
-//             disabled={!isEdit}
-//             required={isEdit}
-//           />
-
-//           <label htmlFor="contact">Mobile Number</label>
-//           <input
-//             id="contact"
-//             type="tel"
-//             name="mobile"
-//             value={formData.mobile}
-//             onChange={handleChange}
-//             disabled={!isEdit}
-//             required={isEdit}
-//           />
-
-//           <label htmlFor="addressLine1">Address Line 1</label>
-//           <textarea
-//             id="addressLine1"
-//             name="address1"
-//             value={formData.address1}
-//             onChange={handleChange}
-//             disabled={!isEdit}
-//             required={isEdit}
-//           />
-
-//           <label htmlFor="addressLine2">Address Line 2</label>
-//           <textarea
-//             id="addressLine2"
-//             name="address2"
-//             required
-//             value={formData.address2}
-//             onChange={handleChange}
-//             disabled={!isEdit}
-//           />
-
-//           <label htmlFor="addressLine3">Address Line 3</label>
-//           <textarea
-//             id="addressLine3"
-//             name="address3"
-//             required={isEdit}
-//             onChange={handleChange}
-//             value={formData.address3}
-//             disabled={!isEdit}
-//           />
-
-//           <label htmlFor="pincode">Pincode</label>
-//           <input
-//             id="pincode"
-//             type="number"
-//             name="pincode"
-//             required
-//             value={formData.pincode}
-//             onChange={handleChange}
-//             disabled={!isEdit}
-//           />
-
-//           <label htmlFor="profilePhoto">Photo</label>
-//           <input
-//             id="profilePhoto"
-//             type="file"
-//             name="photo"
-//             disabled={!isEdit}
-//             onChange={(e) => {
-//               const file = e.target.files[0];
-//               if (!file) return;
-
-//               const previewUrl = URL.createObjectURL(file);
-
-//               setFormData((prev) => ({
-//                 ...prev,
-//                 photo: previewUrl,
-//               }));
-//             }}
-//           />
-
-//           {isEdit && <button type="submit">Update</button>}
-//         </form>
-//       </div>
-//     </div>
-//   );
-// };
-
-// export default ViewAndEdit;
-
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
-import Users from "../../users.json";
+import FormInput from "../Components/FormInput";
+import { compressImage } from "../utils/imageCompression";
+import { useForm } from "../hooks/useForm";
+import { useUsers } from "../hooks/useUsers";
+import { validateUserForm } from "../utils/validation";
 
 const ViewAndEdit = () => {
   const navigate = useNavigate();
   const { id } = useParams();
   const [searchParams] = useSearchParams();
-
   const isEdit = searchParams.get("isedit") === "true";
 
-  // STABLE users source (no recreation on every render) - suggested by chatGPT
-  const users = useMemo(() => {
-    return JSON.parse(localStorage.getItem("users")) || Users;
-  }, []);
+  const { getUserById, updateUser } = useUsers();
+  const user = getUserById(id);
 
-  // review later ( effective user ) - for checking the user very first
-  const user = useMemo(() => {
-    return users.find((u) => u.id === Number(id));
-  }, [users, id]);
+  const {
+    values,
+    errors,
+    handleBlur,
+    setValues,
+  } = useForm(
+    {
+      firstName: "",
+      middleName: "",
+      lastName: "",
+      email: "",
+      mobile: "",
+      address1: "",
+      address2: "",
+      address3: "",
+      pincode: "",
+      photo: "",
+    },
+    false,
+    validateUserForm,
+  );
+
+  useEffect(() => {
+    if (user) {
+      setValues({
+        firstName: user.name.split(" ")[0] || "",
+        middleName: user.name.split(" ")[1] || "",
+        lastName: user.name.split(" ")[2] || "",
+        email: user.email,
+        mobile: user.mobile,
+        address1: user.address1,
+        address2: user.address2,
+        address3: user.address3,
+        pincode: user.pincode,
+        photo: user.photo,
+      });
+    }
+  }, [user, setValues]);
 
   // Safety check
-  if (!user) {
-    return <h1>User Not Found</h1>;
+  if (!user && !values.firstName) {
+    return <h1>Loading or User Not Found...</h1>;
   }
 
-  // data state
-  const [formData, setFormData] = useState(null);
-
-  // initializing the state , data init
-  useEffect(() => {
-    setFormData({
-      firstName: user.name.split(" ")[0] || "",
-      middleName: user.name.split(" ")[1] || "",
-      lastName: user.name.split(" ")[2] || "",
-      email: user.email,
-      mobile: user.mobile,
-      address1: user.address1,
-      address2: user.address2,
-      address3: user.address3,
-      pincode: user.pincode,
-      photo: user.photo,
-    });
-  }, [user]);
-
-  // url for the photo ( review later )
-  useEffect(() => {
-    return () => {
-      if (formData?.photo?.startsWith("blob:")) {
-        URL.revokeObjectURL(formData.photo);
-      }
-    };
-  }, [formData?.photo]);
-
-  // ⏳ Loading guard
-  if (!formData) {
-    return <h1>Loading user data...</h1>;
-  }
-
-  // handling the input for editable user
-  const handleChange = (e) => {
+  const handleCustomChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
+    let newValue = value;
+
+    if (name === "mobile") {
+      newValue = value.replace(/\D/g, "");
+      if (newValue.length > 0 && !/^[6-9]/.test(newValue)) return;
+    } else if (["firstName", "middleName", "lastName"].includes(name)) {
+      newValue = value.replace(/[^a-zA-Z\s]/g, "");
+    }
+
+    setValues((prev) => ({ ...prev, [name]: newValue }));
   };
 
-  // updating the user data
-  const handleSubmit = (e) => {
+  const onSubmit = (e) => {
     e.preventDefault();
+    const validationErrors = validateUserForm(values);
+    if (Object.keys(validationErrors).length > 0) {
+      alert("Please fix the errors before submitting");
+      return;
+    }
 
-    const updatedUsers = users.map((u) =>
-      u.id === Number(id)
-        ? {
-            ...u,
-            name: `${formData.firstName} ${formData.middleName} ${formData.lastName}`
-              .replace(/\s+/g, " ")
-              .trim(),
-            email: formData.email,
-            mobile: formData.mobile,
-            address1: formData.address1,
-            address2: formData.address2,
-            address3: formData.address3,
-            pincode: formData.pincode,
-            photo: formData.photo,
-          }
-        : u,
-    );
+    const updatedUser = {
+      ...user,
+      name: `${values.firstName} ${values.middleName} ${values.lastName}`
+        .replace(/\s+/g, " ")
+        .trim(),
+      email: values.email,
+      mobile: values.mobile,
+      address1: values.address1,
+      address2: values.address2,
+      address3: values.address3,
+      pincode: values.pincode,
+      photo: values.photo,
+    };
 
-    localStorage.setItem("users", JSON.stringify(updatedUsers));
+    updateUser(updatedUser);
     alert("User updated successfully!");
     navigate("/users");
   };
@@ -326,106 +105,146 @@ const ViewAndEdit = () => {
       <h1>{isEdit ? "Edit User" : "View User"}</h1>
 
       <div className="form">
-        <form onSubmit={handleSubmit}>
-          <label>First Name</label>
-          <input
+        <form onSubmit={onSubmit}>
+          <FormInput
+            label="First Name"
             name="firstName"
-            value={formData.firstName}
-            onChange={handleChange}
+            value={values.firstName}
+            onChange={handleCustomChange}
+            onBlur={handleBlur}
             disabled={!isEdit}
             required
+            error={isEdit ? errors.firstName : ""}
           />
 
-          <label>Middle Name</label>
-          <input
+          <FormInput
+            label="Middle Name"
             name="middleName"
-            value={formData.middleName}
-            onChange={handleChange}
+            value={values.middleName}
+            onChange={handleCustomChange}
+            onBlur={handleBlur}
             disabled={!isEdit}
           />
 
-          <label>Last Name</label>
-          <input
+          <FormInput
+            label="Last Name"
             name="lastName"
-            value={formData.lastName}
-            onChange={handleChange}
+            value={values.lastName}
+            onChange={handleCustomChange}
+            onBlur={handleBlur}
             disabled={!isEdit}
             required
+            error={isEdit ? errors.lastName : ""}
           />
 
-          <label>Email</label>
-          <input
+          <FormInput
+            label="Email"
             type="email"
             name="email"
-            value={formData.email}
-            onChange={handleChange}
+            value={values.email}
+            onChange={handleCustomChange}
+            onBlur={handleBlur}
             disabled={!isEdit}
             required
+            error={isEdit ? errors.email : ""}
           />
 
-          <label>Mobile</label>
-          <input
+          <FormInput
+            label="Mobile"
             name="mobile"
-            value={formData.mobile}
-            onChange={handleChange}
+            value={values.mobile}
+            onChange={handleCustomChange}
+            onBlur={handleBlur}
             disabled={!isEdit}
             required
+            error={isEdit ? errors.mobile : ""}
           />
 
-          <label>Address Line 1</label>
-          <textarea
+          <FormInput
+            as="textarea"
+            label="Address Line 1"
             name="address1"
-            value={formData.address1}
-            onChange={handleChange}
+            value={values.address1}
+            onChange={handleCustomChange}
+            onBlur={handleBlur}
             disabled={!isEdit}
+            error={isEdit ? errors.address1 : ""}
           />
 
-          <label>Address Line 2</label>
-          <textarea
+          <FormInput
+            as="textarea"
+            label="Address Line 2"
             name="address2"
-            value={formData.address2}
-            onChange={handleChange}
+            value={values.address2}
+            onChange={handleCustomChange}
             disabled={!isEdit}
           />
 
-          <label>Address Line 3</label>
-          <textarea
+          <FormInput
+            as="textarea"
+            label="Address Line 3"
             name="address3"
-            value={formData.address3}
-            onChange={handleChange}
+            value={values.address3}
+            onChange={handleCustomChange}
+            onBlur={handleBlur}
             disabled={!isEdit}
+            error={isEdit ? errors.address3 : ""}
           />
 
-          <label>Pincode</label>
-          <input
+          <FormInput
+            label="Pincode"
             name="pincode"
-            value={formData.pincode}
-            onChange={handleChange}
+            value={values.pincode}
+            onChange={handleCustomChange}
+            onBlur={handleBlur}
             disabled={!isEdit}
+            error={isEdit ? errors.pincode : ""}
           />
 
-          <label>Photo</label>
-          <input
-            type="file"
-            disabled={!isEdit}
-            onChange={(e) => {
-              const file = e.target.files[0];
-              if (!file) return;
+          <div className="form-group">
+            <label>Photo</label>
+            <input
+              type="file"
+              disabled={!isEdit}
+              onChange={(e) => {
+                const file = e.target.files[0];
+                if (!file) return;
 
-              const preview = URL.createObjectURL(file);
-              setFormData((prev) => ({
-                ...prev,
-                photo: preview,
-              }));
-            }}
-          />
+                compressImage(file)
+                  .then((compressedBase64) => {
+                    setValues((prev) => ({
+                      ...prev,
+                      photo: compressedBase64,
+                    }));
+                  })
+                  .catch((err) =>
+                    console.error("Error compressing image:", err),
+                  );
+              }}
+            />
+          </div>
 
-          {formData.photo && (
+          {values.photo && (
             <img
-              src={formData.photo}
+              src={values.photo}
               alt="preview"
               width="120"
-              style={{ marginTop: "10px" }}
+              style={{
+                marginTop: "10px",
+                borderRadius: "50%",
+                objectFit: "cover",
+              }}
+              onError={(e) => {
+                const name =
+                  (values.firstName || "") + " " + (values.lastName || "");
+                const fallbackUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                  name.trim() || "User",
+                )}&background=random`;
+
+                if (e.target.src !== fallbackUrl) {
+                  e.target.src = fallbackUrl;
+                }
+              }}
             />
           )}
 

@@ -8,6 +8,7 @@ import ForgotPasswordPage from "./Pages/ForgotPasswordPage.jsx";
 import ViewAndEdit from "./Pages/ViewAndEdit.jsx";
 // importing the components
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import NewHomePage from "./Pages/NewHomePage/NewHomePage.jsx";
 
 //setting up the router
 
@@ -52,6 +53,11 @@ const router = createBrowserRouter([
     element: <LoginPage />,
     children: [],
   },
+  {
+    path : "/newhomepage",
+    element : <NewHomePage />
+
+  }
 ]);
 
 function App() {

@@ -53,11 +53,20 @@ export const useUsers = () => {
     [users],
   );
 
+  const deleteUser = useCallback((userId) => {
+    setUsers((prevUsers) => {
+      const updatedUsers = prevUsers.filter((user) => user.id !== userId);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedUsers));
+      return updatedUsers;
+    });
+  }, []);
+
   return {
     users,
     loading,
     addUser,
     updateUser,
+    deleteUser,
     getUserById,
   };
 };

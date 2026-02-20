@@ -49,14 +49,14 @@ label {
   font-size: 0.9rem;
 }
 
-input {
+/* input {
   margin-bottom: 15px;
   padding: 10px;
   border: 1px solid #ccc;
   border-radius: 6px;
   font-size: 1rem;
-}
-
+} */
+/* 
 input:focus {
   outline: none;
   border-color: #8b8b8b;
@@ -66,7 +66,7 @@ input:focus {
 input[type="file"] {
   border: none;
   padding: 5px 0;
-}
+} */
 
 button[type="submit"] {
   background-color: #333;

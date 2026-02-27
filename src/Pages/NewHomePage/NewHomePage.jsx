@@ -1,5 +1,7 @@
 import React, { useState } from "react";
-import { useUsers } from "../../hooks/useUsers";
+import { useUsers  } from "../../hooks/useUsers";
+import { useNavigate } from "react-router-dom";
+
 import {
   Table,
   TableBody,
@@ -10,13 +12,6 @@ import {
 } from "../../components/ui/table";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "../../components/ui/select";
 import {
   Pagination,
   PaginationContent,
@@ -37,25 +32,30 @@ import {
   CardTitle,
 } from "../../components/ui/card";
 import { ModeToggle } from "../../components/ModeToggle";
-import { ArrowUpDown, Eye, Edit, Trash2, Search } from "lucide-react";
+import { ArrowUpDown, Eye, Edit, Trash2 } from "lucide-react";
 import ViewUserDialog from "../../Components/Users/ViewUserDialog";
 import EditUserDialog from "../../Components/Users/EditUserDialog";
+import AddUserDialog from "../../Components/Users/AddUserDialog";
 
 const NewHomePage = () => {
+  const navigate = useNavigate();
   // for user view dialog
   const [isViewOpen, setIsViewOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
+  //for add user dialog
+  const [isAddUserOpen, setIsAddUserOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
 
-  const { users, updateUser, deleteUser } = useUsers();
-  // Placeholder state for UI interactivity (logic to be implemented later)
-  const [searchField, setSearchField] = useState("name");
+  const { users, addUser, updateUser, deleteUser } = useUsers();
   const [searchQuery, setSearchQuery] = useState("");
   const [activeSearchQuery, setActiveSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 8; // Example pagination limit
 
-  const [sortConfig, setSortConfig] = useState({ key: null, direction: "ascending" });
+  const [sortConfig, setSortConfig] = useState({
+    key: null,
+    direction: "ascending",
+  });
 
   const handleSort = (key) => {
     let direction = "ascending";
@@ -66,17 +66,15 @@ const NewHomePage = () => {
   };
 
   const handleSearch = () => {
-      setActiveSearchQuery(searchQuery);
-      setCurrentPage(1);
-  }
+    setActiveSearchQuery(searchQuery);
+    setCurrentPage(1);
+  };
 
   const handleDelete = (userId) => {
     if (window.confirm("Are you sure you want to delete this user?")) {
       deleteUser(userId);
     }
   };
-
-
 
   const filteredUsers = React.useMemo(() => {
     let result = [...users];
@@ -85,16 +83,14 @@ const NewHomePage = () => {
     if (activeSearchQuery) {
       const lowerQuery = activeSearchQuery.toLowerCase();
       result = result.filter((user) => {
-        if (searchField === "name") {
-          return user.name?.toLowerCase().includes(lowerQuery);
-        } else if (searchField === "email") {
-          return user.email?.toLowerCase().includes(lowerQuery);
-        } else if (searchField === "address") {
-          // Combined address check
-          const fullAddress = `${user.address1 || ""} ${user.address2 || ""} ${user.address3 || ""} ${user.pincode || ""}`.toLowerCase();
-          return fullAddress.includes(lowerQuery);
-        }
-        return false;
+        const fullAddress =
+          `${user.address1 || ""} ${user.address2 || ""} ${user.address3 || ""} ${user.pincode || ""}`.toLowerCase();
+        return (
+          user.name?.toLowerCase().includes(lowerQuery) ||
+          user.email?.toLowerCase().includes(lowerQuery) ||
+          user.mobile?.toString().toLowerCase().includes(lowerQuery) ||
+          fullAddress.includes(lowerQuery)
+        );
       });
     }
 
@@ -111,7 +107,7 @@ const NewHomePage = () => {
       });
     }
     return result;
-  }, [users, sortConfig, searchField, activeSearchQuery]);
+  }, [users, sortConfig, activeSearchQuery]);
 
   // Pagination Logic
   const startIndex = (currentPage - 1) * itemsPerPage;
@@ -133,6 +129,32 @@ const NewHomePage = () => {
     }
   };
 
+  // Formik validation will be handled inside EditUserDialog and SignUpPage
+
+  const getAvatarUrl = (user) => {
+    if (
+      user.photoThumbnail instanceof Blob ||
+      user.photoThumbnail instanceof File
+    )
+      return URL.createObjectURL(user.photoThumbnail);
+    if (user.thumbnail instanceof Blob || user.thumbnail instanceof File)
+      return URL.createObjectURL(user.thumbnail);
+    if (
+      user.photoOriginal instanceof Blob ||
+      user.photoOriginal instanceof File
+    )
+      return URL.createObjectURL(user.photoOriginal);
+    if (user.photo instanceof Blob || user.photo instanceof File)
+      return URL.createObjectURL(user.photo);
+    return (
+      user.photoThumbnail ||
+      user.thumbnail ||
+      user.photoOriginal ||
+      user.photo ||
+      undefined
+    );
+  };
+
   return (
     <div className="p-8 min-h-screen bg-background text-foreground shadow-xl ring-gray-900/5 transition-colors duration-300">
       <Card className="w-full shadow-lg">
@@ -140,29 +162,22 @@ const NewHomePage = () => {
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-6">
           <CardTitle className="text-2xl font-bold">User Listing</CardTitle>
           <div className="flex items-center space-x-2">
-            <select
-              value={searchField}
-              onChange={(e) => setSearchField(e.target.value)}
-              className="w-[180px] h-9 rounded-md border border-input bg-white text-black px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-            >
-              <option value="name">Name</option>
-              <option value="email">Email</option>
-              <option value="address">Address</option>
-            </select>
             <Input
               type="text"
-              placeholder={`Search by ${searchField}...`}
+              placeholder="Search by name, email, mobile, or address..."
               value={searchQuery}
               onChange={(e) => {
                 setSearchQuery(e.target.value);
               }}
               onKeyDown={(e) => {
-                if(e.key === 'Enter') handleSearch();
+                if (e.key === "Enter") handleSearch();
               }}
+              onBlur={handleSearch}
               className="w-[300px] "
               style={{ marginBottom: "0px" }}
             />
-            <Button onClick={handleSearch}>Search</Button>
+            <Button className="cursor-pointer" onClick={handleSearch}>Search</Button>
+            <Button className="cursor-pointer" onClick={() => setIsAddUserOpen(true)}>Add User</Button>
             <ModeToggle />
           </div>
         </CardHeader>
@@ -223,10 +238,7 @@ const NewHomePage = () => {
                     </TableCell>
                     <TableCell>
                       <Avatar>
-                        <AvatarImage
-                          src={user.photo || user.thumbnail}
-                          alt={user.name}
-                        />
+                        <AvatarImage src={getAvatarUrl(user)} alt={user.name} />
                         <AvatarFallback>{user.name?.charAt(0)}</AvatarFallback>
                       </Avatar>
                     </TableCell>
@@ -236,6 +248,7 @@ const NewHomePage = () => {
                           variant="outline"
                           size="icon"
                           title="View"
+                          className="cursor-pointer"
                           onClick={() => {
                             setSelectedUser(user);
                             setIsViewOpen(true);
@@ -247,6 +260,7 @@ const NewHomePage = () => {
                           variant="outline"
                           size="icon"
                           title="Edit"
+                          className="cursor-pointer"
                           onClick={() => {
                             setSelectedUser(user);
                             setIsEditOpen(true);
@@ -257,7 +271,7 @@ const NewHomePage = () => {
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                          className="text-red-500 hover:text-red-700 hover:bg-red-50 cursor-pointer"
                           onClick={() => handleDelete(user.id)}
                           title="Delete User"
                         >
@@ -387,6 +401,11 @@ const NewHomePage = () => {
             setOpen={setIsEditOpen}
             user={selectedUser}
             onSave={updateUser}
+          />
+          <AddUserDialog 
+            open={isAddUserOpen} 
+            setOpen={setIsAddUserOpen} 
+            onAdd={addUser} 
           />
         </CardContent>
       </Card>

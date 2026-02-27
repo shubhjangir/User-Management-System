@@ -8,17 +8,14 @@ import {
 } from "../ui/dialog";
 import UserForm from "./UserForm";
 
-const EditUserDialog = ({ open, user, setOpen, onSave }) => {
-  if (!user) return null;
-
-  const handleEditSubmit = (values) => {
+const AddUserDialog = ({ open, setOpen, onAdd }) => {
+  const handleCreateSubmit = (values) => {
     const fullName =
       `${values.firstName} ${values.middleName} ${values.lastName}`
         .replace(/\s+/g, " ")
         .trim();
 
-    const updatedUser = {
-      ...user,
+    const newUser = {
       name: fullName,
       email: values.email,
       mobile: values.mobile,
@@ -30,8 +27,7 @@ const EditUserDialog = ({ open, user, setOpen, onSave }) => {
       photoThumbnail: values.photoThumbnail,
     };
 
-    console.log("Saving user:", updatedUser);
-    onSave(updatedUser);
+    onAdd(newUser);
     setOpen(false);
   };
 
@@ -39,19 +35,20 @@ const EditUserDialog = ({ open, user, setOpen, onSave }) => {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent className="sm:max-w-[700px] w-full max-h-[85vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Edit User</DialogTitle>
-          <DialogDescription className="sr-only">Make changes to your profile here.</DialogDescription>
+          <DialogTitle>Add User</DialogTitle>
+          <DialogDescription className="sr-only">
+            Add a new user to the system.
+          </DialogDescription>
         </DialogHeader>
 
-        <UserForm 
-          mode="edit" 
-          initialData={user} 
-          onSubmit={handleEditSubmit} 
-          onCancel={() => setOpen(false)} 
+        <UserForm
+          mode="create"
+          onSubmit={handleCreateSubmit}
+          onCancel={() => setOpen(false)}
         />
       </DialogContent>
     </Dialog>
   );
 };
 
-export default EditUserDialog;
+export default AddUserDialog;

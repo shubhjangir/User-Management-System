@@ -15,7 +15,7 @@ import NewHomePage from "./Pages/NewHomePage/NewHomePage.jsx";
 const router = createBrowserRouter([
   {
     path: "/",
-    element: <UserListingPage />,
+    element: <NewHomePage />,
     children: [
       // {
       //   path: "view",

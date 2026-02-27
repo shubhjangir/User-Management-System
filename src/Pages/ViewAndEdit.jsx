@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useMemo } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import FormInput from "../Components/FormInput";
 import { compressImage } from "../utils/imageCompression";
@@ -53,6 +53,20 @@ const ViewAndEdit = () => {
       });
     }
   }, [user, setValues]);
+
+  const photoPreviewUrl = useMemo(() => {
+    if (!values.photo) return "";
+    if (values.photo instanceof Blob || values.photo instanceof File) {
+      return URL.createObjectURL(values.photo);
+    }
+    return values.photo;
+  }, [values.photo]);
+
+  useEffect(() => {
+    if (photoPreviewUrl?.startsWith("blob:")) {
+      return () => URL.revokeObjectURL(photoPreviewUrl);
+    }
+  }, [photoPreviewUrl]);
 
   // Safety check
   if (!user && !values.firstName) {
@@ -211,10 +225,10 @@ const ViewAndEdit = () => {
                 if (!file) return;
 
                 compressImage(file)
-                  .then((compressedBase64) => {
+                  .then((compressedBlob) => {
                     setValues((prev) => ({
                       ...prev,
-                      photo: compressedBase64,
+                      photo: compressedBlob,
                     }));
                   })
                   .catch((err) =>
@@ -224,9 +238,9 @@ const ViewAndEdit = () => {
             />
           </div>
 
-          {values.photo && (
+          {photoPreviewUrl && (
             <img
-              src={values.photo}
+              src={photoPreviewUrl}
               alt="preview"
               width="120"
               style={{

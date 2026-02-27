@@ -21,7 +21,7 @@ const UserTable = ({ users, onView, onEdit }) => {
             <td>{user.mobile}</td>
             <td>
               <img
-                src={user.photo}
+                src={user.photoThumbnail || user.thumbnail || user.photo}
                 alt={user.name}
                 width="40"
                 height="40"
